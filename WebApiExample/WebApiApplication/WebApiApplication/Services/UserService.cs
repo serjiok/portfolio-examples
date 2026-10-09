@@ -11,10 +11,10 @@ public sealed class UserService(IWrite<int, User> writeDB, IRead<int, User> read
     public Task<User[]> ReadAsync(Expression<Func<User, bool>>? predicate = null, (string Property, bool Asc)? order = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default)
         => readDB.Read(predicate, order, skip, take).ToArrayAsync(cancellationToken);
 
-    public Task<int> Count(Expression<Func<User, bool>>? predicate, CancellationToken cancellationToken = default)
+    public Task<int> CountAsync(Expression<Func<User, bool>>? predicate, CancellationToken cancellationToken = default)
         => readDB.Read(predicate).CountAsync(cancellationToken);
 
-    public Task<bool> Any(Expression<Func<User, bool>>? predicate, CancellationToken cancellationToken = default)
+    public Task<bool> AnyAsync(Expression<Func<User, bool>>? predicate, CancellationToken cancellationToken = default)
         => readDB.Read(predicate).AnyAsync(cancellationToken);
 
     public async Task AddAsync(User value, CancellationToken cancellationToken = default)

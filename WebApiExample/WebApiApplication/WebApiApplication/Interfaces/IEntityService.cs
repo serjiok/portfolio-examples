@@ -6,9 +6,9 @@ public interface IEntityService<TKey, T>
 {
     public Task<T[]> ReadAsync(Expression<Func<T, bool>>? predicate = null, (string Property, bool Asc)? order = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
 
-    public Task<int> Count(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
+    public Task<int> CountAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
 
-    public Task<bool> Any(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
+    public Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
 
     public Task AddAsync(T value, CancellationToken cancellationToken = default);
 

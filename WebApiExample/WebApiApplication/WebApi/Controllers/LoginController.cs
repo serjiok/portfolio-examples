@@ -18,7 +18,7 @@ public sealed class LoginController(IConfiguration configuration, IMediator medi
         { 
             Login = loginAndPassword.Login, 
             Password = loginAndPassword.Password 
-        });
+        }, cancellationToken);
 
         if (isSuccess)
         {

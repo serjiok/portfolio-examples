@@ -3,7 +3,7 @@ using WebApiDatabase.Models;
 
 namespace WebApiDatabase;
 
-public class ContextDB : DbContext
+public sealed class ContextDB : DbContext
 {
     public DbSet<User> Users { get; init; }
 

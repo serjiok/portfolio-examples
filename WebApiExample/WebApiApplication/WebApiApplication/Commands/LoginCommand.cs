@@ -14,6 +14,6 @@ public sealed class LoginCommandHandler(IEntityService<int, User> userService) :
 {
     public Task<bool> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        return userService.Any(x => x.Login == request.Login && x.Password == request.Password, cancellationToken: cancellationToken);
+        return userService.AnyAsync(x => x.Login == request.Login && x.Password == request.Password, cancellationToken: cancellationToken);
     }
 }

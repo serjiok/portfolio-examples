@@ -9,14 +9,16 @@ namespace WebApi.Controllers;
 public sealed class FileController : ControllerBase
 {
     [HttpGet(nameof(Download))]
-    public IActionResult Download(string filename, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Download(string filename)
     {
         filename = Path.Combine(AppContext.BaseDirectory, "upload", filename);
         if (!System.IO.File.Exists(filename)) return NotFound();
-        var fileStream = new FileStream(filename, FileMode.Open, 
+
+        using var fileStream = new FileStream(filename, FileMode.Open, 
             FileAccess.Read, 
             FileShare.Read, 4096, 
             FileOptions.Asynchronous | FileOptions.SequentialScan);
+
         return new FileStreamResult(fileStream, "application/octet-stream")
         {
             FileDownloadName = fileStream.Name,

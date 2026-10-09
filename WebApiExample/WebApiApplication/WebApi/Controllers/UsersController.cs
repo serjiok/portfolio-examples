@@ -16,7 +16,7 @@ public sealed class UsersController(IMediator mediator, IMapper mapper) : Contro
     public async Task<IActionResult> Registration(UserWithPassword userWithPassword, CancellationToken cancellationToken = default)
     {
         var user = mapper.Map<WebApiDatabase.Models.User>(userWithPassword);
-        await mediator.Send(new AddUserCommand() { User = user });
+        await mediator.Send(new AddUserCommand() { User = user }, cancellationToken);
         return Ok();
     }
 
@@ -24,7 +24,7 @@ public sealed class UsersController(IMediator mediator, IMapper mapper) : Contro
     [HttpGet(nameof(Get))]
     public async Task<User[]> Get(string? property, bool? asc, int? skip, int? take, CancellationToken cancellationToken = default)
     {
-        var users = await mediator.Send(new GetUsersCommand() { Property = property, Asc = asc, Skip = skip, Take = take });
+        var users = await mediator.Send(new GetUsersCommand() { Property = property, Asc = asc, Skip = skip, Take = take }, cancellationToken);
 
         var dto = mapper.Map<User[]>(users);
         return dto;

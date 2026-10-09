@@ -1,3 +1,4 @@
+using NLog;
 using WebApi.Configurations;
 using WebApiApplication.Configuration;
 
@@ -21,5 +22,5 @@ app.UseExceptionHandler()
     .MapHttp()
     .UseAuthorization();
 
-app.Services.GetRequiredService<ILogger<Program>>().LogInformation(builder.Configuration["Kestrel:EndPoints:Https:Url"]);
+LogManager.GetCurrentClassLogger().Info("{info}", builder.Configuration["Kestrel:EndPoints:Https:Url"]);
 app.Run();
