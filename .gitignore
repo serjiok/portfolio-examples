@@ -2,7 +2,7 @@
 # Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
-/PatternsExample/.vs
-/PatternsExample/PatternsExample/bin/Debug/net10.0
-/PatternsExample/PatternsExample/obj
+.vs
+bin
+obj
+*.pfx
