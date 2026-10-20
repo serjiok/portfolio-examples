@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using WebApiApplication.Interfaces;
 using WebApiDatabase.Models;
 
-namespace WebApiApplication.Commands;
+namespace WebApiApplication.Commands.Users;
 
 public sealed class GetUsersCommand : IRequest<User[]>
 {
