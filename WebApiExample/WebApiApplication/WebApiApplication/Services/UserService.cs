@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
 using WebApiApplication.Interfaces;
 using WebApiDatabase.Interfaces;
@@ -34,4 +35,7 @@ public sealed class UserService(IWrite<int, User> writeDB, IRead<int, User> read
         await writeDB.UpdateAsync(value, cancellationToken);
         await writeDB.SaveAsync(cancellationToken);
     }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        => writeDB.BeginTransactionAsync(cancellationToken);
 }

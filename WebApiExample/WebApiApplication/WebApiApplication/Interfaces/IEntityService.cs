@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq.Expressions;
 
 namespace WebApiApplication.Interfaces;
 
@@ -15,4 +16,6 @@ public interface IEntityService<TKey, T>
     public Task DeleteAsync(TKey key, CancellationToken cancellationToken = default);
 
     public Task UpdateAsync(T value, CancellationToken cancellationToken = default);
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }

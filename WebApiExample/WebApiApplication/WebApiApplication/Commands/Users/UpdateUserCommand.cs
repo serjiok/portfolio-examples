@@ -14,7 +14,18 @@ internal sealed class UpdateUserCommandHandler(IEntityService<int, User> userSer
 {
     public async Task Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        await userService.UpdateAsync(request.User, cancellationToken);
-        await mediator.Publish(new UpdateUserNotification() { User = request.User });
+
+        var transaction = await userService.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await userService.UpdateAsync(request.User, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            await mediator.Publish(new UpdateUserNotification() { User = request.User });
+        }
+        catch 
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw; 
+        }
     }
 }

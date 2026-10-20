@@ -1,4 +1,6 @@
-﻿namespace WebApiDatabase.Interfaces;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+
+namespace WebApiDatabase.Interfaces;
 
 public interface IWrite<TKey, T>
 {
@@ -32,4 +34,11 @@ public interface IWrite<TKey, T>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task SaveAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Begin transaction
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken);
 }

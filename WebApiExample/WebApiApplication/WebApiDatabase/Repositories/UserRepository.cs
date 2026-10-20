@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
 using WebApiDatabase.Interfaces;
 using WebApiDatabase.Models;
@@ -45,4 +46,6 @@ public sealed class UserRepository(ContextDB context) : IRead<int, User>, IWrite
     }
 
     public Task SaveAsync(CancellationToken cancellationToken = default) => context.SaveChangesAsync(cancellationToken);
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken) => context.Database.BeginTransactionAsync(cancellationToken);
 }
