@@ -2,21 +2,20 @@
 using MyMediatr.Interfaces;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MyMediatr;
 
 public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
 {
-    public static ConcurrentDictionary<Type, MethodInfo> methods = [];
-    public static ConcurrentDictionary<Type, Type> types = [];
+    public static readonly ConcurrentDictionary<Type, MethodInfo> methods = [];
+    public static readonly ConcurrentDictionary<Type, Type> types = [];
 
     public Task Publish(INotification request, CancellationToken cancellationToken = default)
     {
-        var typeRequest = request.GetType();
-        Type consumerType = typeof(INotificationHandler<>);
-        consumerType = consumerType.MakeGenericType(typeRequest);
+        var consumerType = GetCacheType(request.GetType(), typeof(INotificationHandler<>));
 
-        var serviceHandlers = serviceProvider.GetServices(consumerType).Where(x => x != null).DistinctBy(x => x.GetType());
+        var serviceHandlers = serviceProvider.GetServices(consumerType).Where(x => x != null).DistinctBy(x => x!.GetType());
         if (serviceHandlers == null) return Task.CompletedTask;
 
         List<Task>? tasks = null;
@@ -60,7 +59,7 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         return m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException();
     }
 
-    private Type GetCacheType(Type type, Type interFaceType, Type? responseType = null)
+    private static Type GetCacheType(Type type, Type interFaceType, Type? responseType = null)
         => types.GetOrAdd(type, _ =>
             responseType == null ? interFaceType.MakeGenericType(type) : interFaceType.MakeGenericType(type, responseType));
 }

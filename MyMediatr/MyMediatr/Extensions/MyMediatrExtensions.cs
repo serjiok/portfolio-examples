@@ -90,7 +90,7 @@ public static class MyMediatrExtensions
         }
     }
 
-    private static Type[] FindTypesImplementingGenericInterface(
+    private static IEnumerable<Type> FindTypesImplementingGenericInterface(
         Assembly assembly,
         Type genericInterfaceDefinition)
     {
@@ -101,7 +101,6 @@ public static class MyMediatrExtensions
             .Where(t => !t.IsInterface && !t.IsAbstract)
             .Where(t => t.GetInterfaces()
                 .Any(i => i.IsGenericType &&
-                          i.GetGenericTypeDefinition() == genericInterfaceDefinition))
-            .ToArray();
+                          i.GetGenericTypeDefinition() == genericInterfaceDefinition));
     }
 }
