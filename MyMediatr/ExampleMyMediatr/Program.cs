@@ -13,6 +13,15 @@ var mediator = serviceProvider.GetRequiredService<IMediator>();
 
 await mediator.Publish(new NotifyMessage() { Message = "hello" });
 await mediator.Send(new RequestCommand() { Value = 1 });
+
 var result = await mediator.Send(new RequestResponseCommand() { Value = "test" });
 Console.WriteLine(result);
+Console.WriteLine("Press any key to run many threads...");
+Console.ReadKey();
+for (int i = 0; i <= 100_000; i++)
+{
+    mediator.Send(new RequestCommand() { Value = i });
+    mediator.Publish(new NotifyMessage() { Message = $"hello {i}" });    
+};
+
 Console.ReadKey();

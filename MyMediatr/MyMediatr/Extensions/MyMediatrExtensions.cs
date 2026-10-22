@@ -13,8 +13,9 @@ public static class MyMediatrExtensions
         {
             assembly ??= Assembly.GetExecutingAssembly();
             services.RegistrateNotification(assembly)
-                    .RegistrateResponse(assembly)
-                    .RegistrateRequestResponse(assembly);
+                    .RegistrateRequest(assembly)
+                    .RegistrateRequestResponse(assembly)
+                    .AddSingleton<IMediator, Mediator>();
 
             return services;
         }
@@ -36,12 +37,10 @@ public static class MyMediatrExtensions
                 }
             }
 
-            services.AddSingleton<IMediator, Mediator>();
-
             return services;
         }
 
-        private IServiceCollection RegistrateResponse(Assembly assembly)
+        private IServiceCollection RegistrateRequest(Assembly assembly)
         {
             var handlers = FindTypesImplementingGenericInterface(assembly, typeof(IRequestHandler<>));
 

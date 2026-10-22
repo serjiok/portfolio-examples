@@ -16,61 +16,51 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         Type consumerType = typeof(INotificationHandler<>);
         consumerType = consumerType.MakeGenericType(typeRequest);
 
-        var serviceHandlers = serviceProvider.GetServices(consumerType).Where(x => x != null).DistinctBy(x=>x.GetType());
+        var serviceHandlers = serviceProvider.GetServices(consumerType).Where(x => x != null).DistinctBy(x => x.GetType());
         if (serviceHandlers == null) return Task.CompletedTask;
 
-        List<Task> tasks = new(serviceHandlers.Count());
+        List<Task>? tasks = null;
+        int count = serviceHandlers.Count();
+        if (count > 1) tasks = new(count);
         foreach (var handler in serviceHandlers)
         {
-            if (!methods.TryGetValue(handler!.GetType(), out var m))
-            {
-                m = handler.GetType().GetMethod(nameof(INotificationHandler<>.Handle))!;
-                methods.TryAdd(handler.GetType(), m);
-            }
-            tasks.Add(Task.Run(()=> m.Invoke(handler, [request, cancellationToken]), cancellationToken));
+            var m = methods.GetOrAdd(handler!.GetType(), _ => handler.GetType()
+                    .GetMethod(nameof(INotificationHandler<>.Handle)) ?? throw new NullReferenceException());
+
+            if (count == 1) return m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException();
+            
+            tasks!.Add(m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException());
         }
-        return Task.WhenAll(tasks);
+        return tasks == null ? Task.CompletedTask : Task.WhenAll(tasks);
     }
 
-    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default) 
-        where TResponse: notnull
+    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        where TResponse : notnull
     {
         var consumerType = GetCacheType(request.GetType(), typeof(IRequestHandler<,>), typeof(TResponse));
 
         var handler = serviceProvider.GetRequiredService(consumerType);
 
-        if (!methods.TryGetValue(handler!.GetType(), out var m))
-        {
-            m = handler.GetType().GetMethod(nameof(IRequestHandler<,>.Handle))!;
-            methods.TryAdd(handler.GetType(), m);
-        }
-        var result = m.Invoke(handler, [request, cancellationToken]) as Task<TResponse> ?? throw new NullReferenceException();
-        return result;
+        var m = methods.GetOrAdd(handler!.GetType(), _ => handler.GetType()
+                .GetMethod(nameof(IRequestHandler<,>.Handle)) ?? throw new NullReferenceException());
+
+        return m.Invoke(handler, [request, cancellationToken]) as Task<TResponse> ?? throw new NullReferenceException();
     }
 
-    public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) 
+    public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
         where TRequest : notnull, IRequest
     {
         var consumerType = GetCacheType(request.GetType(), typeof(IRequestHandler<>));
 
         var handler = serviceProvider.GetRequiredService(consumerType);
-        if (!methods.TryGetValue(handler!.GetType(), out var m))
-        {
-            m = handler.GetType().GetMethod(nameof(IRequestHandler<>.Handle))!;
-            methods.TryAdd(handler.GetType(), m);
-        }
-        var result = m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException();
-        return result;
+
+        var m = methods.GetOrAdd(handler!.GetType(), _ => handler.GetType()
+                .GetMethod(nameof(IRequestHandler<>.Handle)) ?? throw new NullReferenceException());
+
+        return m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException();
     }
 
     private Type GetCacheType(Type type, Type interFaceType, Type? responseType = null)
-    {
-        if (!types.TryGetValue(type, out var consumerType))
-        {
-            consumerType = interFaceType;
-            consumerType = responseType == null ? consumerType.MakeGenericType(type) : consumerType.MakeGenericType(type, responseType);
-            types.TryAdd(type, consumerType);
-        }
-        return consumerType;
-    }
+        => types.GetOrAdd(type, _ =>
+            responseType == null ? interFaceType.MakeGenericType(type) : interFaceType.MakeGenericType(type, responseType));
 }
