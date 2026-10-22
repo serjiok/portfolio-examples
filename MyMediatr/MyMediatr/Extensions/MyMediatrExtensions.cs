@@ -6,9 +6,7 @@ namespace MyMediatr.Extensions;
 
 public static class MyMediatrExtensions
 {
-    private static readonly TypeFilter notificationFilter = (type, criteria)    => type.GetGenericTypeDefinition() == typeof(INotificationHandler<>);
-    private static readonly TypeFilter requestFilter =      (type, criteria)    => type.GetGenericTypeDefinition() == typeof(IRequestHandler<>);
-    private static readonly TypeFilter requestResponseFilter = (type, criteria) => type.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
+    private static readonly TypeFilter typeFilter = static (type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition() == (Type)criteria!;
 
     extension (IServiceCollection services)
     {
@@ -29,7 +27,7 @@ public static class MyMediatrExtensions
 
             foreach (var notification in notifications)
             {
-                Type typeRequest = notification.FindInterfaces(notificationFilter, null).First().GenericTypeArguments[0];
+                Type typeRequest = notification.FindInterfaces(typeFilter, typeof(INotificationHandler<>)).First().GenericTypeArguments[0];
                 Type handlerType = typeof(INotificationHandler<>).MakeGenericType(typeRequest);
                 
                 var handlers = assembly.GetTypes().Where(x => handlerType.IsAssignableFrom(x));
@@ -48,7 +46,7 @@ public static class MyMediatrExtensions
 
             foreach (var handler in handlers)
             {
-                Type typeRequest = handler.FindInterfaces(requestFilter, null).First().GenericTypeArguments[0];
+                Type typeRequest = handler.FindInterfaces(typeFilter, typeof(IRequestHandler<>)).First().GenericTypeArguments[0];
                 Type handlerType = typeof(IRequestHandler<>).MakeGenericType([typeRequest]);
 
                 services.Add(new ServiceDescriptor(
@@ -69,7 +67,7 @@ public static class MyMediatrExtensions
 
             foreach (var handler in handlers)
             {
-                Type types = handler.FindInterfaces(requestResponseFilter, null).First();
+                Type types = handler.FindInterfaces(typeFilter, typeof(IRequestHandler<,>)).First();
                 Type typeRequest = types.GenericTypeArguments[0];
                 Type typeResponse = types.GenericTypeArguments[1];
                 Type handlerType = typeof(IRequestHandler<,>).MakeGenericType([typeRequest, typeResponse]);
