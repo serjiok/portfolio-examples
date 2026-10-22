@@ -6,7 +6,6 @@ namespace MyMediatr.Extensions;
 
 public static class MyMediatrExtensions
 {
-
     extension (IServiceCollection services)
     {
         public IServiceCollection AddMyMediatr(Assembly? assembly)
@@ -26,14 +25,13 @@ public static class MyMediatrExtensions
 
             foreach (var notification in notifications)
             {
-                var i = notification.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(INotificationHandler<>));
-                var type = i.GenericTypeArguments[0];
-                Type consumerType = typeof(INotificationHandler<>);
-                consumerType = consumerType.MakeGenericType(type);
-                var handlers = assembly.GetTypes().Where(x => consumerType.IsAssignableFrom(x));
+                Type typeRequest = notification.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(INotificationHandler<>)).GenericTypeArguments[0];
+                Type handlerType = typeof(INotificationHandler<>).MakeGenericType(typeRequest);
+                
+                var handlers = assembly.GetTypes().Where(x => handlerType.IsAssignableFrom(x));
                 foreach (var handler in handlers)
                 {
-                    services.Add(new ServiceDescriptor(consumerType, handler, ServiceLifetime.Transient));
+                    services.Add(new ServiceDescriptor(handlerType, handler, ServiceLifetime.Transient));
                 }
             }
 
@@ -46,14 +44,11 @@ public static class MyMediatrExtensions
 
             foreach (var handler in handlers)
             {
-                var i = handler.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(IRequestHandler<>));
-                var type = i.GenericTypeArguments[0];
-
-                Type consumerType = typeof(IRequestHandler<>);
-                consumerType = consumerType.MakeGenericType([type]);
+                Type typeRequest = handler.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(IRequestHandler<>)).GenericTypeArguments[0];
+                Type handlerType = typeof(IRequestHandler<>).MakeGenericType([typeRequest]);
 
                 services.Add(new ServiceDescriptor(
-                    consumerType,
+                    handlerType,
                     handler,
                     ServiceLifetime.Transient
                 ));
@@ -70,15 +65,13 @@ public static class MyMediatrExtensions
 
             foreach (var handler in handlers)
             {
-                var i = handler.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
-                var type = i.GenericTypeArguments[0];
-                var tresponse = i.GenericTypeArguments[1];
-
-                Type consumerType = typeof(IRequestHandler<,>);
-                consumerType = consumerType.MakeGenericType([type, tresponse]);
+                Type types = handler.GetInterfaces().First(x => x.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+                Type typeRequest = types.GenericTypeArguments[0];
+                Type typeResponse = types.GenericTypeArguments[1];
+                Type handlerType = typeof(IRequestHandler<,>).MakeGenericType([typeRequest, typeResponse]);
 
                 services.Add(new ServiceDescriptor(
-                    consumerType,
+                    handlerType,
                     handler,
                     ServiceLifetime.Transient
                 ));
