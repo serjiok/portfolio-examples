@@ -5,7 +5,7 @@ using MyMediatr.Interfaces;
 using System.Reflection;
 
 IServiceCollection serviceCollection = new ServiceCollection();
-serviceCollection.AddMyMediatr(Assembly.GetExecutingAssembly());
+serviceCollection.AddMyMediatr(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var serviceProvider = serviceCollection.BuildServiceProvider();
 

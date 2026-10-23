@@ -10,50 +10,51 @@ public static class MyMediatrExtensions
 
     extension (IServiceCollection services)
     {
-        public IServiceCollection AddMyMediatr(Assembly? assembly)
+        public IServiceCollection AddMyMediatr(Action<MyMediatrServiceConfiguration> action)
         {
-            assembly ??= Assembly.GetExecutingAssembly();
-            services.RegistrateNotification(assembly)
-                    .RegistrateRequest(assembly)
-                    .RegistrateRequestResponse(assembly)
-                    .AddSingleton<IMediator, Mediator>();
+            var configuration = new MyMediatrServiceConfiguration();
+            action.Invoke(configuration);
 
+            if (!configuration.Assemblies.Any()) configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+
+            services.RegistrateNotification(configuration)
+                    .RegistrateRequest(configuration)
+                    .RegistrateRequestResponse(configuration);
+            services.AddSingleton(configuration);
+            services.AddSingleton<IMediator, Mediator>();
+           
             return services;
         }
 
-        private IServiceCollection RegistrateNotification(Assembly assembly)
+        private IServiceCollection RegistrateNotification(MyMediatrServiceConfiguration configuration)
         {
-            var notifications = FindTypesImplementingGenericInterface(assembly, typeof(INotificationHandler<>));
+            var notifications = FindTypesImplementingGenericInterface(configuration.Assemblies, typeof(INotificationHandler<>));
 
             foreach (var notification in notifications)
             {
                 Type typeRequest = notification.FindInterfaces(typeFilter, typeof(INotificationHandler<>)).First().GenericTypeArguments[0];
                 Type handlerType = typeof(INotificationHandler<>).MakeGenericType(typeRequest);
                 
-                var handlers = assembly.GetTypes().Where(x => handlerType.IsAssignableFrom(x));
+                var handlers = configuration.Assemblies.SelectMany(a => a.GetTypes()).Where(x => handlerType.IsAssignableFrom(x));
                 foreach (var handler in handlers)
                 {
-                    services.Add(new ServiceDescriptor(handlerType, handler, ServiceLifetime.Transient));
+                    services.Add(new ServiceDescriptor(handlerType, handler, configuration.LifeTime));
                 }
             }
 
             return services;
         }
 
-        private IServiceCollection RegistrateRequest(Assembly assembly)
+        private IServiceCollection RegistrateRequest(MyMediatrServiceConfiguration configuration)
         {
-            var handlers = FindTypesImplementingGenericInterface(assembly, typeof(IRequestHandler<>));
+            var handlers = FindTypesImplementingGenericInterface(configuration.Assemblies, typeof(IRequestHandler<>));
 
             foreach (var handler in handlers)
             {
                 Type typeRequest = handler.FindInterfaces(typeFilter, typeof(IRequestHandler<>)).First().GenericTypeArguments[0];
                 Type handlerType = typeof(IRequestHandler<>).MakeGenericType([typeRequest]);
 
-                services.Add(new ServiceDescriptor(
-                    handlerType,
-                    handler,
-                    ServiceLifetime.Transient
-                ));
+                services.Add(new ServiceDescriptor(handlerType, handler, configuration.LifeTime));
             }
 
             services.AddSingleton<IMediator, Mediator>();
@@ -61,9 +62,9 @@ public static class MyMediatrExtensions
             return services;
         }
 
-        private IServiceCollection RegistrateRequestResponse(Assembly assembly)
+        private IServiceCollection RegistrateRequestResponse(MyMediatrServiceConfiguration configuration)
         {
-            var handlers = FindTypesImplementingGenericInterface(assembly, typeof(IRequestHandler<,>));
+            var handlers = FindTypesImplementingGenericInterface(configuration.Assemblies, typeof(IRequestHandler<,>));
 
             foreach (var handler in handlers)
             {
@@ -72,11 +73,7 @@ public static class MyMediatrExtensions
                 Type typeResponse = types.GenericTypeArguments[1];
                 Type handlerType = typeof(IRequestHandler<,>).MakeGenericType([typeRequest, typeResponse]);
 
-                services.Add(new ServiceDescriptor(
-                    handlerType,
-                    handler,
-                    ServiceLifetime.Transient
-                ));
+                services.Add(new ServiceDescriptor(handlerType, handler, configuration.LifeTime));
             }
 
             services.AddSingleton<IMediator, Mediator>();
@@ -86,13 +83,13 @@ public static class MyMediatrExtensions
     }
 
     private static IEnumerable<Type> FindTypesImplementingGenericInterface(
-        Assembly assembly,
+        IEnumerable<Assembly> assembly,
         Type genericInterfaceDefinition)
     {
         if (!genericInterfaceDefinition.IsGenericTypeDefinition)
             throw new ArgumentException("typeof(T<>)", nameof(genericInterfaceDefinition));
 
-        return assembly.GetTypes()
+        return assembly.SelectMany(x=>x.GetTypes())
             .Where(t => !t.IsInterface && !t.IsAbstract)
             .Where(t => t.GetInterfaces()
                 .Any(i => i.IsGenericType &&
