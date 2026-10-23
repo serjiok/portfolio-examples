@@ -19,19 +19,15 @@ public sealed class Mediator(IServiceProvider serviceProvider, MyMediatrServiceC
 
         if (!serviceHandlers.Any()) return Task.CompletedTask;
 
-        List<Task>? tasks = null;
-        int count = serviceHandlers.Count();
-        if (count > 1) tasks = new(count);
+        List<Task> tasks = new(serviceHandlers.Count());
         foreach (var handler in serviceHandlers)
         {
             var m = methods.GetOrAdd(handler!.GetType(), _ => handler.GetType()
                     .GetMethod(nameof(INotificationHandler<>.Handle)) ?? throw new NullReferenceException());
-
-            if (count == 1) return m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException();
             
             tasks!.Add(m.Invoke(handler, [request, cancellationToken]) as Task ?? throw new NullReferenceException());
         }
-        return tasks == null ? Task.CompletedTask : Task.WhenAll(tasks);
+        return Task.WhenAll(tasks);
     }
 
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
