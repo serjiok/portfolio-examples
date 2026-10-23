@@ -19,10 +19,10 @@ public static class MyMediatrExtensions
 
             services.RegistrateNotification(configuration)
                     .RegistrateRequest(configuration)
-                    .RegistrateRequestResponse(configuration);
-            services.AddSingleton(configuration);
-            services.AddSingleton<IMediator, Mediator>();
-           
+                    .RegistrateRequestResponse(configuration)
+                    .AddSingleton(configuration)
+                    .AddSingleton<IMediator, Mediator>();
+
             return services;
         }
 
