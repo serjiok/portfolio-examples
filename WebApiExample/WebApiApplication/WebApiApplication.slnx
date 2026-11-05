@@ -2,4 +2,5 @@
   <Project Path="WebApi/WebApi.csproj" />
   <Project Path="WebApiApplication/WebApiApplication.csproj" Id="2c6e292b-1f3a-46bd-bde3-1b9036f7a995" />
   <Project Path="WebApiDatabase/WebApiDatabase.csproj" />
+  <Project Path="WebApiTest/WebApiTest.csproj" Id="d35b9984-6890-497c-9d07-97b09d142401" />
 </Solution>

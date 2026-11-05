@@ -22,4 +22,10 @@
     <ProjectReference Include="..\WebApiApplication\WebApiApplication.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Certificates\aspnetapp.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
