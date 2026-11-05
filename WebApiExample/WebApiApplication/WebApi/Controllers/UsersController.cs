@@ -21,13 +21,23 @@ public sealed class UsersController(IMediator mediator, IMapper mapper) : Contro
     }
 
     [Authorize]
-    [HttpGet(nameof(Get))]
-    public async Task<User[]> Get(string? property, bool? asc, int? skip, int? take, CancellationToken cancellationToken = default)
+    [HttpPost(nameof(Get))]
+    public async Task<User[]> Get(Filter filter, CancellationToken cancellationToken = default)
     {
-        var users = await mediator.Send(new GetUsersCommand() { Property = property, Asc = asc, Skip = skip, Take = take }, cancellationToken);
+        var users = await mediator.Send(new GetUsersCommand() { Filter = filter }, cancellationToken);
 
         var dto = mapper.Map<User[]>(users);
         return dto;
+    }
+
+    [Authorize]
+    [HttpGet(nameof(GetById))]
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
+    {
+        var user = (await mediator.Send(new GetUsersCommand() { Id  = id }, cancellationToken)).FirstOrDefault();
+        if (user is null) return NotFound();
+        var dto = mapper.Map<User>(user);
+        return Ok(dto);
     }
 
     [Authorize]

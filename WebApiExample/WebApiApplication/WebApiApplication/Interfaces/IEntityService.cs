@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
+using WebApiApplication.Models;
 
 namespace WebApiApplication.Interfaces;
 
 public interface IEntityService<TKey, T>
 {
-    public Task<T[]> ReadAsync(Expression<Func<T, bool>>? predicate = null, (string Property, bool Asc)? order = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+    public Task<T[]> ReadAsync(Expression<Func<T, bool>>? predicate = null, Filter? filter = null, CancellationToken cancellationToken = default);
 
-    public Task<int> CountAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
+    public Task<int> CountAsync(Expression<Func<T, bool>>? predicate, Filter? filter = null, CancellationToken cancellationToken = default);
 
     public Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default);
 
