@@ -10,10 +10,10 @@ namespace WebApiApplication.Services;
 public sealed class UserService(IWrite<int, User> writeDB, IRead<int, User> readDB) : IEntityService<int, User>
 {
     public Task<User[]> ReadAsync(Expression<Func<User, bool>>? predicate = null, Models.Filter? filter = null, CancellationToken cancellationToken = default)
-        => readDB.Read(predicate).AsNoTracking().ApplyFilter(filter).ToArrayAsync(cancellationToken);
+        => readDB.Read(predicate).ApplyFilter(filter).ToArrayAsync(cancellationToken);
 
     public Task<int> CountAsync(Expression<Func<User, bool>>? predicate, Models.Filter? filter = null, CancellationToken cancellationToken = default)
-        => readDB.Read(predicate).AsNoTracking().ApplyFilter(filter).CountAsync(cancellationToken);
+        => readDB.Read(predicate).ApplyFilter(filter).CountAsync(cancellationToken);
 
     public Task<bool> AnyAsync(Expression<Func<User, bool>>? predicate, CancellationToken cancellationToken = default)
         => readDB.Read(predicate).AnyAsync(cancellationToken);
