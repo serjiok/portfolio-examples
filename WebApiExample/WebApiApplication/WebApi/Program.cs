@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NLog;
 using WebApi.Configurations;
 using WebApiApplication.Configuration;
@@ -10,9 +12,27 @@ builder.Services
     .UseSQLiteDBSetting()
     .UseNlog()
     .UseSwagger()
-    .UseJwt(builder.Configuration)
     .UseMapper()
-    .AddMediatr();
+    .AddMediatr()
+    .AddAuthorization()
+    .UseJwtAuthorization(builder.Configuration)
+    .UseCookieAuthorization()
+    .AddAuthentication(options =>
+    {
+        options.DefaultScheme = "Smart";
+        options.DefaultAuthenticateScheme = "Smart";
+        options.DefaultChallengeScheme = "Smart";
+    })
+    .AddPolicyScheme("Smart", "Cookie or JWT", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+        {
+            if (context.Request.Headers.ContainsKey("Authorization"))
+                return JwtBearerDefaults.AuthenticationScheme;
+
+            return CookieAuthenticationDefaults.AuthenticationScheme;
+        };
+    });
 
 var app = builder.Build();
 

@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -44,7 +45,7 @@ internal static class Settings
             return services;
         }
 
-        public IServiceCollection UseJwt(IConfiguration configuration)
+        public IServiceCollection UseJwtAuthorization(IConfiguration configuration)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -63,7 +64,26 @@ internal static class Settings
                     ValidateIssuerSigningKey = true,
                 };
             });
-            return services.AddAuthorization();
+            return services;
+        }
+
+        public IServiceCollection UseCookieAuthorization()
+        {
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "auth_token";
+                options.Cookie.HttpOnly = true;              // недоступна из JS — защита от XSS
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // только по HTTPS
+                options.Cookie.SameSite = SameSiteMode.Lax;  // защита от CSRF
+                options.ExpireTimeSpan = TimeSpan.FromDays(1);
+                options.Events.OnRedirectToLogin = ctx =>
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+            });
+            return services;
         }
 
         public IServiceCollection UseNlog()

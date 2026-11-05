@@ -21,6 +21,8 @@ public sealed class UsersController(IMediator mediator, IMapper mapper) : Contro
     }
 
     [Authorize]
+    //[Authorize(AuthenticationSchemes =
+    //$"{JwtBearerDefaults.AuthenticationScheme},{CookieAuthenticationDefaults.AuthenticationScheme}")]
     [HttpPost(nameof(Get))]
     public async Task<User[]> Get(Filter filter, CancellationToken cancellationToken = default)
     {

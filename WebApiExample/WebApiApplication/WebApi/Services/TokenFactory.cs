@@ -16,12 +16,7 @@ internal static class TokenFactory
         var now = DateTime.UtcNow;
         var expire = now.Add(timeLife);
 
-        var claims = new List<Claim>(2 + roles.Count())
-        {
-            new (ClaimTypes.Name, login),
-            new (ClaimTypes.NameIdentifier, login)
-        };
-        claims.AddRange(roles.Select(x => new Claim(ClaimTypes.Role, x)));
+        var claims = GetClaims(login, roles);
 
         var jwt = new JwtSecurityToken(
                             issuer: config.ISSUER,
@@ -37,6 +32,17 @@ internal static class TokenFactory
         var token = jwtSecurityTokenHandler.WriteToken(jwt);
 
         return token;
+    }
+
+    public static IEnumerable<Claim> GetClaims(string login, IEnumerable<string> roles)
+    {
+        var claims = new List<Claim>(2 + roles.Count())
+        {
+            new (ClaimTypes.Name, login),
+            new (ClaimTypes.NameIdentifier, login)
+        };
+        claims.AddRange(roles.Select(x => new Claim(ClaimTypes.Role, x)));
+        return claims;
     }
 
     public static class SHA256
